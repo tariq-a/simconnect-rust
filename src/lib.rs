@@ -95,6 +95,7 @@ pub enum DispatchResult<'a> {
     EventMultiplayerSessionEnded(&'a SIMCONNECT_RECV_EVENT_MULTIPLAYER_SESSION_ENDED),
     EventRaceEnd(&'a SIMCONNECT_RECV_EVENT_RACE_END),
     EventRaceLap(&'a SIMCONNECT_RECV_EVENT_RACE_LAP),
+    FacilityData(&'a SIMCONNECT_RECV_FACILITY_DATA),
 }
 
 /// Handles communication between the client program and SimConnect
@@ -624,6 +625,41 @@ impl SimConnector {
         }
     }
 
+    pub fn add_facility_definition(
+        &self,
+        define_id: SIMCONNECT_DATA_DEFINITION_ID,
+        field_name: &str,
+    ) -> bool {
+        let field_name = CString::new(field_name).unwrap();
+        unsafe {
+            SimConnect_AddToFacilityDefinition(
+                self.sim_connect_handle,
+                define_id,
+                field_name.as_ptr(),
+            ) == 0
+        }
+    }
+
+    pub fn request_facility_data(
+        &self,
+        define_id: SIMCONNECT_DATA_DEFINITION_ID,
+        request_id: SIMCONNECT_DATA_REQUEST_ID,
+        icao: &str,
+        region: &str,
+    ) -> bool {
+        let icao = CString::new(icao).unwrap();
+        let region = CString::new(region).unwrap();
+        unsafe {
+            SimConnect_RequestFacilityData(
+                self.sim_connect_handle,
+                define_id,
+                request_id,
+                icao.as_ptr(),
+                region.as_ptr(),
+            ) == 0
+        }
+    }
+
     pub fn request_data_on_sim_object(
         &self,
         request_id: SIMCONNECT_DATA_REQUEST_ID,
@@ -924,7 +960,11 @@ impl SimConnector {
                         &(data_buf as *const SIMCONNECT_RECV_EVENT_RACE_LAP),
                     )))
                 }
-
+                SIMCONNECT_RECV_ID_SIMCONNECT_RECV_ID_FACILITY_DATA => {
+                    Ok(DispatchResult::FacilityData(transmute_copy(
+                        &(data_buf as *const SIMCONNECT_RECV_FACILITY_DATA),
+                    )))
+                }
                 _ => Err("Unhandled RECV_ID"),
             };
         }
