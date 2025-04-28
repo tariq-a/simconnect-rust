@@ -96,6 +96,7 @@ pub enum DispatchResult<'a> {
     EventRaceEnd(&'a SIMCONNECT_RECV_EVENT_RACE_END),
     EventRaceLap(&'a SIMCONNECT_RECV_EVENT_RACE_LAP),
     FacilityData(&'a SIMCONNECT_RECV_FACILITY_DATA),
+    FacilityDataEnd(&'a SIMCONNECT_RECV_FACILITY_DATA_END),
 }
 
 /// Handles communication between the client program and SimConnect
@@ -963,6 +964,11 @@ impl SimConnector {
                 SIMCONNECT_RECV_ID_SIMCONNECT_RECV_ID_FACILITY_DATA => {
                     Ok(DispatchResult::FacilityData(transmute_copy(
                         &(data_buf as *const SIMCONNECT_RECV_FACILITY_DATA),
+                    )))
+                }
+                SIMCONNECT_RECV_ID_SIMCONNECT_RECV_ID_FACILITY_DATA_END => {
+                    Ok(DispatchResult::FacilityDataEnd(transmute_copy(
+                        &(data_buf as *const SIMCONNECT_RECV_FACILITY_DATA_END),
                     )))
                 }
                 _ => Err("Unhandled RECV_ID"),
