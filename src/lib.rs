@@ -825,7 +825,7 @@ impl SimConnector {
     }
 
     /// Retrieves the next message from SimConnect. Nonblocking.
-    pub fn get_next_message(&self) -> Result<DispatchResult, &str> {
+    pub fn get_next_message(&'_ self) -> Result<DispatchResult<'_>, &'_ str> {
         let mut data_buf: *mut SIMCONNECT_RECV = ptr::null_mut();
 
         let mut size_buf: DWORD = 32;
